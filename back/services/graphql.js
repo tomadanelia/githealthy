@@ -1,20 +1,25 @@
 import { graphql } from "@octokit/graphql";
-
 export async function fetchGitHubData(owner, name, token) {
   const query = `
     query ($owner: String!, $name: String!) {
       repository(owner: $owner, name: $name) {
-        pullRequests(last: 50, states: [OPEN,CLOSED]) {
+        name
+        owner { login }
+        pullRequests(last: 50, states: [OPEN, CLOSED, MERGED]) {
           nodes {
+            number
             title
+            state
             author { login }
             createdAt
+            closedAt
+            mergedAt
             url
             reviews(last: 10) {
               nodes {
                 state
                 author { login }
-                createdAt
+                submittedAt
               }
             }
             commits(last: 1) {

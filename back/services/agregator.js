@@ -22,7 +22,7 @@ const processRepoStats = (rawData) => {
   
   const processedPRs = prs.map((pr) => {
     const createdAt = new Date(pr.createdAt);
-    const now = new Date();
+    const now = pr.closedAt ? new Date(pr.closedAt) : new Date();
     const ageHours = getHoursDiff(createdAt, now);
     
     const authorName = pr.author?.login || "Unknown";
