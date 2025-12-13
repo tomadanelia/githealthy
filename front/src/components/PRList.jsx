@@ -3,7 +3,7 @@ import { useStore } from "../store/useStore";
 const STATUS_CONFIG = {
   WAITING_REVIEW: {
     color: "bg-yellow-400",
-    label: "Waiting for review",
+    label: "Opened",
     icon: "🟡",
   },
   CHANGES_REQUESTED: {
@@ -17,9 +17,9 @@ const STATUS_CONFIG = {
     icon: "🔴",
   },
   READY_TO_MERGE: {
-    color: "bg-yellow-400",
-    label: "Ready to merge",
-    icon: "🟡",
+    color: "bg-green-400",
+    label: "Approved",
+    icon: "🟢",
   },
 };
 
@@ -61,7 +61,7 @@ function PRRow({ pr }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2"> 
           <span className="text-xs text-gray-600">{config.label}</span>
           <svg
             className={`w-5 h-5 text-gray-400 transition-transform ${
@@ -111,7 +111,7 @@ function PRRow({ pr }) {
             <div className="flex items-center justify-between pt-2 border-t border-gray-200">
               <div>
                 <p className="text-xs text-gray-600">
-                  Author: <span className="font-medium">{pr.author}</span>
+                  Author: <span className="font-bold text-gray-900 text-">{pr.author}</span>
                 </p>
               </div>
               <a
@@ -174,18 +174,37 @@ function PRList({ bottlenecks }) {
           PR Bottlenecks ({bottlenecks.length})
         </h2>
         <div className="flex items-center gap-4 text-xs text-gray-600">
-          <span className="flex items-center gap-1">
-            <span>🟡</span> Waiting
-          </span>
-          <span className="flex items-center gap-1">
-            <span>🔵</span> Changes
-          </span>
-          <span className="flex items-center gap-1">
-            <span>🔴</span> Failed
-          </span>
-          <span className="flex items-center gap-1">
-            <span>🟢</span> Healthy
-          </span>
+          <button className="hover:bg-yellow-400 rounded px-2 py-1 transition">
+  <span className="flex items-center gap-1">
+    <span>🟡</span> Waiting
+  </span>
+</button>
+
+<button className="hover:bg-blue-400 rounded px-2 py-1 transition">
+  <span className="flex items-center gap-1">
+    <span>🔵</span> Changes
+  </span>
+</button>
+
+<button className="hover:bg-red-400 rounded px-2 py-1 transition">
+  <span className="flex items-center gap-1">
+    <span>🔴</span> CI Failed
+  </span>
+</button>
+
+<button className="hover:bg-green-400 rounded px-2 py-1 transition">
+  <span className="flex items-center gap-1">
+    <span>🟢</span> Approved
+  </span>
+</button>
+
+<button className="hover:bg-gray-400 rounded px-2 py-1 transition">
+  <span className="flex items-center gap-1">
+    <span>🔄</span> Reset
+  </span>
+</button>
+
+
         </div>
       </div>
       

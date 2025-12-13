@@ -33,7 +33,7 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
             type="text"
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
-            placeholder="e.g., facebook"
+            placeholder="e.g., golang"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isLoading}
           />
@@ -51,7 +51,7 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
             type="text"
             value={repo}
             onChange={(e) => setRepo(e.target.value)}
-            placeholder="e.g., react"
+            placeholder="e.g., mobile"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isLoading}
           />
@@ -73,11 +73,11 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
       </form>
 
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-500 mb-2">Popular repos to try:</p>
-        <div className="flex flex-wrap gap-2">
+        <p className="text-xs text-gray-500 mb-2">Popular ones:</p>
+        <div className="flex flex-wrap gap-2 ">
           {[
             { owner: "facebook", repo: "react" },
-            { owner: "microsoft", repo: "vscode" },
+            { owner: "ocaml", repo: "ocaml" },
             { owner: "vercel", repo: "next.js" },
           ].map((example) => (
             <button
@@ -86,7 +86,7 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
                 setOwner(example.owner);
                 setRepo(example.repo);
               }}
-              className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 transition"
+              className="text-xs text-gray-800 px-2 py-1 bg-yellow-100 hover:bg-green-200 rounded text-gray-700 transition"
               disabled={isLoading}
             >
               {example.owner}/{example.repo}

@@ -61,7 +61,7 @@ function App() {
             {dashboardData && (
               <button
                 onClick={handleReset}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-green-500 transition"
               >
                 Analyze Different Repo
               </button>
