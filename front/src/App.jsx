@@ -37,7 +37,9 @@ function App() {
   return (
     <div style={{ padding: 20 }}>
       <h1>PR Visualizer</h1>
-      <div>{rate}</div>
+      <button onClick={handleAnalyze} disabled={loading}>
+        {loading ? 'Analyzing...' : 'Test Backend Connection'}
+      </button>
       {data && (
         <pre style={{ textAlign: 'left', marginTop: 20, background: '#f0f0f0', padding: 10 }}>
           {JSON.stringify(data, null, 2)}
