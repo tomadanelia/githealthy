@@ -3,6 +3,7 @@ import { useStore } from "./store/useStore";
 import RepoInput from "./components/RepoInput";
 import PRList from "./components/PRList";
 import HealthMetrics from "./components/HealthMetrics";
+import './index.css';
 
 function App() {
   const {
