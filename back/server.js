@@ -12,12 +12,23 @@ const { processRepoStats } = require('./services/agregator');
 const { fetchGitHubData } = require('./services/graphql'); 
 
 const app = express();
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://FlowCheck-frontend.onrender.com'
+];
+
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true 
-})); 
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
