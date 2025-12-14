@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react"; 
 import { useStore } from "../store/useStore";
+
 const STATUS_CONFIG = {
   WAITING_REVIEW: {
     color: "bg-yellow-400",
@@ -47,7 +48,7 @@ function PRRow({ pr }) {
               {pr.title}
             </h3>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
@@ -56,12 +57,12 @@ function PRRow({ pr }) {
               ></div>
             </div>
             <span className="text-xs text-gray-500 whitespace-nowrap">
-              Age: {pr.age}
+Age: <span className="text-red-500 ">{pr.age}</span>
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2"> 
+        <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600">{config.label}</span>
           <svg
             className={`w-5 h-5 text-gray-400 transition-transform ${
@@ -90,7 +91,7 @@ function PRRow({ pr }) {
               </h4>
               <div className="relative">
                 <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-                
+
                 <div className="space-y-3 relative">
                   <TimelineEvent
                     icon="🟢"
@@ -111,7 +112,7 @@ function PRRow({ pr }) {
             <div className="flex items-center justify-between pt-2 border-t border-gray-200">
               <div>
                 <p className="text-xs text-gray-600">
-                  Author: <span className="font-bold text-gray-900 text-">{pr.author}</span>
+                  Author: <span className="font-bold text-gray-900">{pr.author}</span>
                 </p>
               </div>
               <a
@@ -153,6 +154,8 @@ function TimelineEvent({ icon, label, date, time, highlight }) {
 }
 
 function PRList({ bottlenecks }) {
+  const [filter, setFilter] = useState(null);
+
   if (!bottlenecks || bottlenecks.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
@@ -167,51 +170,69 @@ function PRList({ bottlenecks }) {
     );
   }
 
+  const displayedPRs = filter
+    ? bottlenecks.filter((pr) => pr.status === filter)
+    : bottlenecks;
+
+  // Helper to visually show which button is active
+  const getBtnStyle = (status) => 
+    `rounded px-2 py-1 transition flex items-center gap-1 border ${
+      filter === status 
+      ? "ring-2 ring-offset-1 ring-gray-400 font-bold" 
+      : "border-transparent opacity-80 hover:opacity-100"
+    }`;
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900">
-          PR Bottlenecks ({bottlenecks.length})
+          PR Bottlenecks ({displayedPRs.length})
         </h2>
-        <div className="flex items-center gap-4 text-xs text-gray-600">
-          <button className="hover:bg-yellow-400 rounded px-2 py-1 transition">
-  <span className="flex items-center gap-1">
-    <span>🟡</span> Waiting
-  </span>
-</button>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+          
+          <button
+            className={`${getBtnStyle('WAITING_REVIEW')} hover:bg-yellow-200 bg-yellow-100 text-yellow-800`}
+            onClick={() => setFilter("WAITING_REVIEW")}
+          >
+            <span>🟡</span> Waiting
+          </button>
 
-<button className="hover:bg-blue-400 rounded px-2 py-1 transition">
-  <span className="flex items-center gap-1">
-    <span>🔵</span> Changes
-  </span>
-</button>
+          <button
+            className={`${getBtnStyle('CHANGES_REQUESTED')} hover:bg-blue-200 bg-blue-100 text-blue-800`}
+            onClick={() => setFilter("CHANGES_REQUESTED")}
+          >
+            <span>🔵</span> Changes
+          </button>
 
-<button className="hover:bg-red-400 rounded px-2 py-1 transition">
-  <span className="flex items-center gap-1">
-    <span>🔴</span> CI Failed
-  </span>
-</button>
+          <button
+            className={`${getBtnStyle('CI_FAILED')} hover:bg-red-200 bg-red-100 text-red-800`}
+            onClick={() => setFilter("CI_FAILED")}
+          >
+            <span>🔴</span> CI Failed
+          </button>
 
-<button className="hover:bg-green-400 rounded px-2 py-1 transition">
-  <span className="flex items-center gap-1">
-    <span>🟢</span> Approved
-  </span>
-</button>
+          <button
+            className={`${getBtnStyle('READY_TO_MERGE')} hover:bg-green-200 bg-green-100 text-green-800`}
+            onClick={() => setFilter("READY_TO_MERGE")}
+          >
+            <span>🟢</span> Approved
+          </button>
 
-<button className="hover:bg-gray-400 rounded px-2 py-1 transition">
-  <span className="flex items-center gap-1">
-    <span>🔄</span> Reset
-  </span>
-</button>
-
-
+          <button
+            className="hover:bg-gray-200 bg-gray-100 rounded px-2 py-1 transition flex items-center gap-1"
+            onClick={() => setFilter(null)}
+          >
+            <span>🔄</span> Reset
+          </button>
         </div>
       </div>
-      
+
       <div className="space-y-2">
-        {bottlenecks.map((pr) => (
-          <PRRow key={pr.number} pr={pr} />
-        ))}
+        {displayedPRs.length > 0 ? (
+          displayedPRs.map((pr) => <PRRow key={pr.number} pr={pr} />)
+        ) : (
+          <p className="text-center text-gray-500 py-4 italic">No PRs match this filter.</p>
+        )}
       </div>
     </div>
   );

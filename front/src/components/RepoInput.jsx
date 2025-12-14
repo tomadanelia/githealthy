@@ -16,9 +16,10 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+ <h2 className="text-lg font-semibold text-gray-900 mb-4">
         Analyze Repository
       </h2>
+ 
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -68,7 +69,14 @@ function RepoInput({ onAnalyze, isLoading, error, defaultOwner, defaultRepo }) {
           disabled={isLoading}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
         >
-          {isLoading ? "Analyzing..." : "Analyze PRs"}
+          {isLoading ? "Analyzing..." : "Analyze Public Repo"}
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+        >
+          {isLoading ? "Analyzing..." : "Analyze Private"}
         </button>
       </form>
 
