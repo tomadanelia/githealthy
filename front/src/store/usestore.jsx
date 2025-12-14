@@ -5,82 +5,60 @@ export const useStore = create(
   persist(
     (set, get) => ({
       repoInfo: null,
-      setRepoInfo: (info) => set({ repoInfo: info }),
-      clearRepoInfo: () => set({ repoInfo: null, dashboardData: null }),
-
       dashboardData: null,
       isLoading: false,
       error: null,
+      user: null, 
 
-      setDashboardData: (data) =>
-        set({
-          dashboardData: data,
-          error: null,
-        }),
+      setRepoInfo: (info) => set({ repoInfo: info }),
+      
+      checkSession: async () => {
+        try {
+          const res = await fetch("http://localhost:3000/auth/me", {
+            credentials: 'include' 
+          });
+          const data = await res.json();
+          set({ user: data.user });
+        } catch (e) {
+          console.error("Session check failed", e);
+        }
+      },
 
-      setLoading: (loading) => set({ isLoading: loading }),
-
-      setError: (error) =>
-        set({
-          error,
-          isLoading: false,
-        }),
+      logout: async () => {
+        await fetch("http://localhost:3000/auth/logout", { method: "POST", credentials: 'include' });
+        set({ user: null, dashboardData: null });
+      },
 
       fetchDashboardData: async (owner, repo) => {
         set({ isLoading: true, error: null });
-
         try {
           const response = await fetch("http://localhost:3000/api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: 'include', 
             body: JSON.stringify({ owner, repo }),
           });
 
           if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.statusText}`);
+            const err = await response.json();
+            throw new Error(err.details || err.error || "Fetch failed");
           }
 
           const data = await response.json();
-          set({
-            dashboardData: data,
-            repoInfo: { owner, repo },
-            isLoading: false,
-            error: null,
-          });
-
-          return data;
+          set({ dashboardData: data, repoInfo: { owner, repo }, isLoading: false, error: null });
         } catch (err) {
-          set({
-            error: err.message,
-            isLoading: false,
-          });
-          throw err;
+          set({ error: err.message, isLoading: false });
         }
       },
 
       expandedPrNumber: null,
-      setExpandedPr: (prNumber) => set({ expandedPrNumber: prNumber }),
-      clearExpandedPr: () => set({ expandedPrNumber: null }),
-      toggleExpandedPr: (prNumber) => {
-        const current = get().expandedPrNumber;
-        set({ expandedPrNumber: current === prNumber ? null : prNumber });
-      },
-
-      reset: () =>
-        set({
-          repoInfo: null,
-          dashboardData: null,
-          expandedPrNumber: null,
-          isLoading: false,
-          error: null,
-        }),
+      setExpandedPr: (n) => set({ expandedPrNumber: n }),
+      toggleExpandedPr: (n) => set(s => ({ expandedPrNumber: s.expandedPrNumber === n ? null : n })),
+      reset: () => set({ repoInfo: null, dashboardData: null, expandedPrNumber: null, isLoading: false, error: null }),
     }),
     {
       name: "github-pr-analyzer",
-      partialize: (state) => ({
-        repoInfo: state.repoInfo,
-        dashboardData: state.dashboardData,
-      }),
+      partialize: (state) => ({ repoInfo: state.repoInfo, dashboardData: state.dashboardData, user: state.user }),
     }
   )
 );

@@ -1,31 +1,126 @@
 require('dotenv').config();
 const { graphql } = require('@octokit/graphql');
 
+require('dotenv').config();
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
 const { processRepoStats } = require('./services/agregator');
 const { fetchGitHubData } = require('./services/graphql'); 
 
 const app = express();
-app.use(cors()); 
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+})); 
 app.use(express.json());
+app.use(cookieParser());
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY 
+);
+app.get('/auth/github', (req, res) => {
+  const redirectUri = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=repo read:org`;
+  res.redirect(redirectUri);
+});
+app.get('/auth/github/callback', async (req, res) => {
+  const { code } = req.query;
+  if (!code) return res.status(400).send('No code');
+
+  try {
+    const tokenRes = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code,
+    }, { headers: { Accept: 'application/json' } });
+
+    const accessToken = tokenRes.data.access_token;
+
+    const userRes = await axios.get('https://api.github.com/user', {
+      headers: { Authorization: `token ${accessToken}` }
+    });
+    const { login, avatar_url } = userRes.data;
+
+    const { error } = await supabase
+      .from('github_users')
+      .upsert({ 
+        username: login, 
+        avatar_url: avatar_url,
+        access_token: accessToken,
+        updated_at: new Date()
+      });
+
+    if (error) throw error;
+
+   
+    res.cookie('app_user', login, {
+      httpOnly: true, 
+      secure: false,  
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 
+    });
+
+    res.redirect(`${process.env.FRONTEND_URL}?login=success`);
+
+  } catch (error) {
+    console.error('Auth Failed:', error);
+    res.redirect(`${process.env.FRONTEND_URL}?login=failed`);
+  }
+});
+
+app.get('/auth/me', async (req, res) => {
+  const username = req.cookies.app_user;
+  if (!username) return res.json({ user: null });
+
+  const { data } = await supabase
+    .from('github_users')
+    .select('username, avatar_url')
+    .eq('username', username)
+    .single();
+
+  res.json({ user: data });
+});
+
+app.post('/auth/logout', (req, res) => {
+  res.clearCookie('app_user');
+  res.json({ success: true });
+});
 
 app.post('/api/analyze', async (req, res) => {
   try {
-    const { owner, repo} = req.body;
-    const token = process.env.GITHUB_PAT;
+    const { owner, repo } = req.body;
+    let token = req.body.token; 
+
+    if (!token && req.cookies.app_user) {
+      const { data } = await supabase
+        .from('github_users')
+        .select('access_token')
+        .eq('username', req.cookies.app_user)
+        .single();
+        
+      if (data) token = data.access_token;
+    }
+
     if (!token) {
-        return res.status(400).json({ error: "GitHub Token is required" });
+        return res.status(401).json({ error: "Unauthorized. Please login or provide a PAT." });
     }
 
     const rawData = await fetchGitHubData(owner, repo, token);
     const analysis = processRepoStats(rawData);
     res.json(analysis);
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to analyze repo', details: error.message });
+    const msg = error.response?.status === 404 ? "Repo not found or private." : error.message;
+    res.status(500).json({ error: 'Analysis failed', details: msg });
   }
 });
+
 app.get('/api/rate-limit', async (req, res) => {
   try {
     const token = process.env.GITHUB_PAT;
