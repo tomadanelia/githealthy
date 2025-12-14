@@ -23,8 +23,7 @@ const STATUS_CONFIG = {
     icon: "🟢",
   },
 };
-
-function PRRow({ pr }) {
+function PRRow({ pr, barWidth }) { 
   const { expandedPrNumber, toggleExpandedPr } = useStore();
   const isExpanded = expandedPrNumber === pr.number;
   const config = STATUS_CONFIG[pr.status] || {
@@ -52,16 +51,16 @@ function PRRow({ pr }) {
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className={`h-full ${config.color} transition-all`}
-                style={{ width: "75%" }}
+                className={`h-full ${config.color} transition-all duration-500 ease-out`} 
+                style={{ width: `${barWidth}%` }} 
               ></div>
             </div>
-            <span className="text-xs text-gray-500 whitespace-nowrap">
-Age: <span className="text-red-500 ">{pr.age}</span>
+            <span className="text-xs text-gray-500 whitespace-nowrap min-w-[3rem] text-right">
+              {pr.age}
             </span>
           </div>
         </div>
-
+        
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600">{config.label}</span>
           <svg
@@ -72,12 +71,7 @@ Age: <span className="text-red-500 ">{pr.age}</span>
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </button>
@@ -85,13 +79,12 @@ Age: <span className="text-red-500 ">{pr.age}</span>
       {isExpanded && (
         <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">
           <div className="space-y-4">
-            <div>
+                        <div>
               <h4 className="text-xs font-semibold text-gray-700 mb-2">
                 Timeline
               </h4>
               <div className="relative">
                 <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-
                 <div className="space-y-3 relative">
                   <TimelineEvent
                     icon="🟢"
@@ -108,21 +101,9 @@ Age: <span className="text-red-500 ">{pr.age}</span>
                 </div>
               </div>
             </div>
-
             <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-              <div>
-                <p className="text-xs text-gray-600">
-                  Author: <span className="font-bold text-gray-900">{pr.author}</span>
-                </p>
-              </div>
-              <a
-                href={pr.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-              >
-                View on GitHub →
-              </a>
+               <div><p className="text-xs text-gray-600">Author: <span className="font-bold text-gray-900">{pr.author}</span></p></div>
+               <a href={pr.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">View on GitHub →</a>
             </div>
           </div>
         </div>
@@ -130,7 +111,6 @@ Age: <span className="text-red-500 ">{pr.age}</span>
     </div>
   );
 }
-
 function TimelineEvent({ icon, label, date, time, highlight }) {
   return (
     <div className="flex items-start gap-3 pl-1">
@@ -173,8 +153,8 @@ function PRList({ bottlenecks }) {
   const displayedPRs = filter
     ? bottlenecks.filter((pr) => pr.status === filter)
     : bottlenecks;
+     const maxAgeHours = Math.max(...displayedPRs.map((p) => p.ageHours || 0), 1);
 
-  // Helper to visually show which button is active
   const getBtnStyle = (status) => 
     `rounded px-2 py-1 transition flex items-center gap-1 border ${
       filter === status 
@@ -227,11 +207,22 @@ function PRList({ bottlenecks }) {
         </div>
       </div>
 
-      <div className="space-y-2">
+  <div className="space-y-2">
         {displayedPRs.length > 0 ? (
-          displayedPRs.map((pr) => <PRRow key={pr.number} pr={pr} />)
+   displayedPRs.map((pr) => {
+            const rawPct = (pr.ageHours / maxAgeHours) * 100;
+      const widthPct = Math.max(rawPct, 5); 
+
+            return (
+          <PRRow 
+                key={pr.number} 
+                pr={pr} 
+                barWidth={widthPct} 
+              />
+            );
+          })
         ) : (
-          <p className="text-center text-gray-500 py-4 italic">No PRs match this filter.</p>
+<p className="text-center text-gray-500 py-4 italic">No PRs match this filter.</p>
         )}
       </div>
     </div>
