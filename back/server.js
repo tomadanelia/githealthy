@@ -123,7 +123,9 @@ app.post('/api/analyze', async (req, res) => {
         }
       }
     }
-
+    if (!token) {
+        token = process.env.GITHUB_PAT;
+    }
     if (!token) {
         return res.status(401).json({ error: "Unauthorized. Please login or provide a PAT." });
     }
