@@ -89,6 +89,7 @@ const processRepoStats = (rawData) => {
         url: pr.url || `https://github.com/${rawData.repository.owner}/${rawData.repository.name}/pull/${pr.number}`,
         createdAt: pr.createdAt,
         age: formatDuration(ageHours),
+        ageHours: ageHours,
         status: bottleneckStatus,
         reason: bottleneckReason,
       });
