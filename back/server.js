@@ -2,6 +2,7 @@ require('dotenv').config();
 const { graphql } = require('@octokit/graphql');
 
 require('dotenv').config();
+const { encrypt, decrypt } = require('./utils/encryption');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -45,13 +46,14 @@ app.get('/auth/github/callback', async (req, res) => {
       headers: { Authorization: `token ${accessToken}` }
     });
     const { login, avatar_url } = userRes.data;
+        const encryptedToken = encrypt(accessToken);
 
     const { error } = await supabase
       .from('github_users')
       .upsert({ 
         username: login, 
         avatar_url: avatar_url,
-        access_token: accessToken,
+        access_token: encryptedToken,
         updated_at: new Date()
       });
 
@@ -90,20 +92,25 @@ app.post('/auth/logout', (req, res) => {
   res.clearCookie('app_user');
   res.json({ success: true });
 });
-
 app.post('/api/analyze', async (req, res) => {
   try {
     const { owner, repo } = req.body;
     let token = req.body.token; 
-
-    if (!token && req.cookies.app_user) {
+    if (!token && req.cookies && req.cookies.app_user) {
       const { data } = await supabase
         .from('github_users')
         .select('access_token')
         .eq('username', req.cookies.app_user)
         .single();
         
-      if (data) token = data.access_token;
+      if (data && data.access_token) {
+        try {
+          token = decrypt(data.access_token);
+        } catch (err) {
+          console.error("Decryption failed:", err);
+          return res.status(500).json({ error: "Failed to decrypt token. Please login again." });
+        }
+      }
     }
 
     if (!token) {
@@ -115,12 +122,11 @@ app.post('/api/analyze', async (req, res) => {
     res.json(analysis);
 
   } catch (error) {
-    console.error(error);
+    console.error("Analyze Error:", error.message);
     const msg = error.response?.status === 404 ? "Repo not found or private." : error.message;
-    res.status(500).json({ error: 'Analysis failed', details: msg });
+    res.status(500).json({ error: 'Failed to analyze', details: msg });
   }
 });
-
 app.get('/api/rate-limit', async (req, res) => {
   try {
     const token = process.env.GITHUB_PAT;
