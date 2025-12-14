@@ -1,11 +1,12 @@
 import React from "react";
 import { useStore } from "../store/useStore";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function AuthButton() {
   const { user, logout } = useStore();
 
   const handleLogin = () => {
-    window.location.href = "http://localhost:3000/auth/github";
+    window.location.href = `${API_URL}/auth/github`;
   };
 
   if (user) {

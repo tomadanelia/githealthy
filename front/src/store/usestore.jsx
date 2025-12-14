@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const useStore = create(
   persist(
@@ -14,7 +15,7 @@ export const useStore = create(
       
       checkSession: async () => {
         try {
-          const res = await fetch("http://localhost:3000/auth/me", {
+          const res = await fetch(`${API_URL}/auth/me`, {
             credentials: 'include' 
           });
           const data = await res.json();
@@ -25,14 +26,14 @@ export const useStore = create(
       },
 
       logout: async () => {
-        await fetch("http://localhost:3000/auth/logout", { method: "POST", credentials: 'include' });
+        await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: 'include' });
         set({ user: null, dashboardData: null });
       },
 
       fetchDashboardData: async (owner, repo) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await fetch("http://localhost:3000/api/analyze", {
+          const response = await fetch(`${API_URL}/api/analyze`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: 'include', 
