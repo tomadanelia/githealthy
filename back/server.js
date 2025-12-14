@@ -14,7 +14,7 @@ const { fetchGitHubData } = require('./services/graphql');
 const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://flowcheckfront.vercel.app'
+  'https://flowcheckfront.onrender.com'
 ];
 
 app.use(cors({
